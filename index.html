@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>kurupdevs — Telegram Userbot Developer & Open Source Builder</title>
+<meta name="description" content="kurupdevs is a 17-year-old developer building Telegram userbots, original 3D games and open-source tools. Creator of KURUPUSERBOT.">
+<meta name="keywords" content="kurupdevs, telegram userbot, KURUPUSERBOT, python developer, open source">
+<meta name="author" content="kurupdevs">
+<meta property="og:title" content="kurupdevs — Developer">
+<meta property="og:description" content="17 y.o. developer building Telegram userbots, games & open source.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kurupdevs.github.io/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Person","name":"kurupdevs","url":"https://kurupdevs.github.io/","sameAs":["https://github.com/kurupdevs"],"jobTitle":"Developer","description":"17-year-old developer building Telegram userbots and open-source software."}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e14;--card:#11161f;--green:#00ff9d;--blue:#00d4ff;--pink:#ff00ea;--text:#e6edf3;--muted:#8b949e}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.6;overflow-x:hidden}
+a{color:var(--green);text-decoration:none}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+header{min-height:92vh;display:flex;flex-direction:column;justify-content:center;position:relative}
+header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 30%,rgba(0,255,157,.08),transparent 50%),radial-gradient(ellipse at 80% 70%,rgba(255,0,234,.06),transparent 50%);pointer-events:none}
+.badge{display:inline-block;border:1px solid var(--green);color:var(--green);padding:6px 16px;border-radius:20px;font-size:13px;margin-bottom:24px;letter-spacing:1px}
+h1{font-size:clamp(48px,9vw,96px);font-weight:800;line-height:1.05;background:linear-gradient(90deg,var(--green),var(--blue));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.typing{font-family:'Courier New',monospace;color:var(--muted);font-size:clamp(16px,3vw,22px);margin-top:16px;min-height:32px}
+.typing .cursor{display:inline-block;width:10px;height:22px;background:var(--green);vertical-align:-4px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.cta{margin-top:36px;display:flex;gap:16px;flex-wrap:wrap}
+.btn{padding:14px 32px;border-radius:8px;font-weight:700;font-size:16px;transition:.2s;display:inline-block}
+.btn-primary{background:var(--green);color:#04120b}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,255,157,.35)}
+.btn-ghost{border:1px solid var(--muted);color:var(--text)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+section{padding:72px 0}
+h2{font-size:32px;margin-bottom:8px}
+h2 .dot{color:var(--green)}
+.sub{color:var(--muted);margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid #1e2732;border-radius:12px;padding:28px;transition:.2s}
+.card:hover{border-color:var(--green);transform:translateY(-4px)}
+.card h3{font-size:20px;margin-bottom:10px}
+.card p{color:var(--muted);font-size:15px;margin-bottom:16px}
+.card .tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tag{font-size:12px;background:#1e2732;padding:4px 12px;border-radius:12px;color:var(--blue)}
+.stats{display:flex;gap:40px;flex-wrap:wrap;margin-top:8px}
+.stat .num{font-size:40px;font-weight:800;color:var(--green)}
+.stat .lbl{color:var(--muted);font-size:14px}
+.skills{display:flex;gap:10px;flex-wrap:wrap}
+.skill{background:var(--card);border:1px solid #1e2732;padding:10px 20px;border-radius:8px;font-family:'Courier New',monospace;font-size:14px}
+footer{border-top:1px solid #1e2732;padding:32px 0;text-align:center;color:var(--muted);font-size:14px}
+.scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:13px;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div>
+<span class="badge">● OPEN FOR COLLABORATION</span>
+<h1>kurupdevs</h1>
+<div class="typing">$ <span id="typed"></span><span class="cursor"></span></div>
+<div class="cta">
+<a class="btn btn-primary" href="https://github.com/kurupdevs">GitHub Profile</a>
+<a class="btn btn-ghost" href="#projects">See Work</a>
+</div>
+</div>
+<div class="scroll">scroll ↓</div>
+</header>
+
+<section id="about">
+<h2>about<span class="dot">.</span></h2>
+<p class="sub">17 y.o. developer obsessed with building things people actually use.</p>
+<div class="stats">
+<div class="stat"><div class="num">26+</div><div class="lbl">userbot modules shipped</div></div>
+<div class="stat"><div class="num">1000+</div><div class="lbl">merged pull requests</div></div>
+<div class="stat"><div class="num">∞</div><div class="lbl">curiosity</div></div>
+</div>
+</section>
+
+<section id="projects">
+<h2>projects<span class="dot">.</span></h2>
+<p class="sub">Real software, built and shipped.</p>
+<div class="grid">
+<div class="card">
+<h3>🤖 KURUPUSERBOT</h3>
+<p>A fast, lightweight, highly customisable Telegram userbot — 26 modules, Docker & Termux support, one-command deploy.</p>
+<div class="tags"><span class="tag">Python</span><span class="tag">Pyrogram</span><span class="tag">Docker</span></div>
+<a href="https://github.com/kurupdevs/KURUPUSERBOT">View on GitHub →</a>
+</div>
+<div class="card">
+<h3>🎮 BattleShooter3D</h3>
+<p>An original 3D battle royale game built in Godot — parachute drop, loot system, shrinking zone, 11 AI bots. Last man standing wins.</p>
+<div class="tags"><span class="tag">Godot</span><span class="tag">GDScript</span><span class="tag">3D</span></div>
+<a href="https://github.com/kurupdevs">View on GitHub →</a>
+</div>
+<div class="card">
+<h3>🎵 Hustle Mode</h3>
+<p>An original Hinglish rap track — written, produced and published independently. Developer by day, artist by night.</p>
+<div class="tags"><span class="tag">Music</span><span class="tag">Hinglish Rap</span></div>
+<a href="https://github.com/kurupdevs">View on GitHub →</a>
+</div>
+</div>
+</section>
+
+<section id="skills">
+<h2>stack<span class="dot">.</span></h2>
+<p class="sub">Tools I reach for.</p>
+<div class="skills">
+<span class="skill">Python</span><span class="skill">Pyrogram / Telethon</span><span class="skill">Docker</span><span class="skill">Git & GitHub</span><span class="skill">Godot / GDScript</span><span class="skill">Linux / Termux</span><span class="skill">JavaScript</span>
+</div>
+</section>
+
+<section id="contact">
+<h2>contact<span class="dot">.</span></h2>
+<p class="sub">Want to collaborate, contribute, or just say hi?</p>
+<div class="cta">
+<a class="btn btn-primary" href="https://github.com/kurupdevs">Find me on GitHub</a>
+</div>
+</section>
+</div>
+<footer>© 2026 kurupdevs — built with ⚡ and shipped from the terminal.</footer>
+<script>
+const lines=["17 y.o. developer building Telegram userbots","open-source builder // game dev // rapper","1000+ PRs merged and counting"];
+let li=0,ci=0,del=false;
+const el=document.getElementById('typed');
+(function tick(){
+  const line=lines[li];
+  el.textContent=line.slice(0,ci);
+  if(!del){ci++;if(ci>line.length){del=true;setTimeout(tick,1600);return;}}
+  else{ci--;if(ci===0){del=false;li=(li+1)%lines.length;}}
+  setTimeout(tick,del?30:70);
+})();
+</script>
+</body>
+</html>
