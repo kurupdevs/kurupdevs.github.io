@@ -2,359 +2,96 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apna AI</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
+<title>Apna AI — Chat, Voice & Images</title>
 <style>
-  :root{
-    --bg:#212121; --panel:#171717; --panel2:#2f2f2f; --hover:#2f2f2f;
-    --text:#ececec; --muted:#9b9b9b; --border:#3a3a3a;
-    --accent:#10a37f; --user-bubble:#2f2f2f;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;overflow:hidden}
-
-  /* ---------- sidebar ---------- */
-  #sidebar{width:260px;min-width:260px;background:var(--panel);display:flex;flex-direction:column;padding:12px 10px;transition:margin .25s ease}
-  body.sb-hidden #sidebar{margin-left:-260px}
-  #newchat{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;cursor:pointer;font-size:14px;width:100%;text-align:left;display:flex;gap:10px;align-items:center}
-  #newchat:hover{background:var(--hover)}
-  #chatlist{flex:1;overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:2px}
-  .chat-item{padding:9px 12px;border-radius:8px;font-size:14px;cursor:pointer;color:#d7d7d7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;justify-content:space-between;align-items:center}
-  .chat-item:hover{background:var(--hover)}
-  .chat-item.active{background:var(--panel2)}
-  .chat-item .del{display:none;color:var(--muted);background:none;border:none;cursor:pointer;font-size:15px;padding:0 2px}
-  .chat-item:hover .del{display:block}
-  .chat-item .del:hover{color:#ff6b6b}
-  #sb-footer{border-top:1px solid var(--border);padding-top:10px}
-  #settings-btn{background:none;border:none;color:var(--text);font-size:14px;cursor:pointer;padding:9px 12px;border-radius:8px;width:100%;text-align:left}
-  #settings-btn:hover{background:var(--hover)}
-  .token-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff6b6b;margin-right:8px}
-  .token-dot.ok{background:#51cf66}
-
-  /* ---------- main ---------- */
-  #main{flex:1;display:flex;flex-direction:column;min-width:0}
-  #topbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border)}
-  #menu-btn{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px}
-  #menu-btn:hover{background:var(--hover)}
-  #app-title{font-weight:600;font-size:16px}
-  #model-badge{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:3px 10px}
-
-  #messages{flex:1;overflow-y:auto;padding:24px 0 16px}
-  .msg{max-width:760px;margin:0 auto;padding:12px 24px;display:flex;gap:14px}
-  .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
-  .avatar.user{background:#5436da}
-  .avatar.ai{background:var(--accent);color:#06281f}
-  .bubble{flex:1;min-width:0;line-height:1.65;font-size:15px;overflow-wrap:break-word}
-  .bubble p{margin:0 0 10px}.bubble p:last-child{margin-bottom:0}
-  .bubble pre{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;margin:10px 0;font-size:13px}
-  .bubble code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-  .bubble :not(pre)>code{background:#0d0d0d;padding:2px 6px;border-radius:5px;font-size:13px}
-  .bubble ul,.bubble ol{margin:8px 0 8px 22px}
-  .bubble li{margin:4px 0}
-  .bubble a{color:#7cc7ff}
-  .bubble h1,.bubble h2,.bubble h3{margin:12px 0 6px}
-  .copy-btn{margin-top:8px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}
-  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
-  .cursor{display:inline-block;width:8px;height:16px;background:var(--accent);animation:blink 1s infinite;vertical-align:-2px}
-  @keyframes blink{50%{opacity:0}}
-
-  #welcome{max-width:760px;margin:8vh auto 0;padding:0 24px;text-align:center}
-  #welcome h1{font-size:30px;margin-bottom:8px}
-  #welcome p{color:var(--muted);margin-bottom:28px}
-  .sugg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left}
-  .sugg{border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;font-size:14px;color:#d7d7d7}
-  .sugg:hover{background:var(--hover)}
-  .sugg b{display:block;margin-bottom:4px;color:var(--text)}
-  .sugg span{color:var(--muted);font-size:13px}
-
-  /* ---------- composer ---------- */
-  #composer-wrap{padding:12px 16px 18px;background:linear-gradient(transparent,var(--bg) 30%)}
-  #composer{max-width:760px;margin:0 auto;background:var(--panel2);border-radius:24px;display:flex;align-items:flex-end;padding:10px 8px 10px 18px;gap:8px}
-  #input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;resize:none;max-height:200px;line-height:1.5;font-family:inherit}
-  #send-btn,#stop-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-  #send-btn{background:#fff;color:#000}
-  #send-btn:disabled{opacity:.35;cursor:default}
-  #stop-btn{background:#fff;color:#000;display:none}
-  #hint{text-align:center;color:var(--muted);font-size:12px;margin-top:8px}
-
-  /* ---------- settings modal ---------- */
-  #modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
-  #modal-bg.open{display:flex}
-  #modal{background:var(--panel2);border:1px solid var(--border);border-radius:14px;width:92%;max-width:520px;padding:24px;max-height:88vh;overflow-y:auto}
-  #modal h2{font-size:18px;margin-bottom:16px}
-  .field{margin-bottom:14px}
-  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  .field input,.field select,.field textarea{width:100%;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-size:14px;font-family:inherit}
-  .field textarea{resize:vertical;min-height:70px}
-  .field small{color:var(--muted);font-size:12px;display:block;margin-top:5px;line-height:1.5}
-  #modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
-  .btn{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px}
-  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06281f;font-weight:600}
-  .btn:hover{filter:brightness(1.1)}
-
-  #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#0d0d0d;border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:10px;font-size:14px;display:none;z-index:60;max-width:90%}
-
-  @media(max-width:640px){
-    .sugg-grid{grid-template-columns:1fr}
-    #sidebar{position:fixed;z-index:40;height:100%}
-    body.sb-hidden #sidebar{margin-left:-260px}
-  }
+:root{--bg:#080b10;--panel:#0d1118;--panel2:#121824;--panel3:#182131;--line:#202a3a;--text:#f2f5f8;--muted:#8c98aa;--green:#68f5b1;--cyan:#64d8ff;--violet:#a78bfa;--danger:#ff5f6d;--shadow:0 22px 70px rgba(0,0,0,.42)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 72% -10%,#18364a 0,transparent 32%),var(--bg);color:var(--text);overflow:hidden}button,input,textarea,select{font:inherit}.hidden{display:none!important}
+button{color:inherit}.app{display:grid;grid-template-columns:278px 1fr;height:100%}.sidebar{background:rgba(9,13,19,.92);border-right:1px solid var(--line);display:flex;flex-direction:column;min-width:0;backdrop-filter:blur(18px)}.brand{display:flex;align-items:center;gap:11px;padding:19px 17px 13px}.logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--cyan) 58%,var(--violet));display:grid;place-items:center;color:#06100d;font-weight:900;box-shadow:0 8px 28px rgba(100,216,255,.2)}.brand strong{font-size:16px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}.new-chat{margin:5px 12px 12px;border:1px solid #2b384d;background:linear-gradient(180deg,#172131,#121924);border-radius:13px;padding:11px 13px;text-align:left;cursor:pointer;font-weight:650}.new-chat:hover{border-color:#49617f}.nav-label{padding:7px 16px;color:#637086;text-transform:uppercase;font-size:10px;letter-spacing:.14em;font-weight:800}.history{flex:1;overflow:auto;padding:0 9px}.history-item{display:flex;gap:8px;align-items:center;padding:10px 9px;border-radius:10px;cursor:pointer;color:#bdc6d3;font-size:13px;min-width:0}.history-item:hover,.history-item.active{background:#141c28;color:#fff}.history-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.history-item button{border:0;background:none;color:#6f7c8f;cursor:pointer;opacity:0}.history-item:hover button{opacity:1}.side-bottom{padding:10px;border-top:1px solid var(--line)}.side-btn{width:100%;padding:10px;border:0;background:transparent;border-radius:10px;text-align:left;cursor:pointer;color:#c9d1dc}.side-btn:hover{background:#141c28}.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);margin-right:9px}
+.main{display:flex;flex-direction:column;min-width:0}.topbar{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 18px;background:rgba(8,11,16,.7);backdrop-filter:blur(18px);z-index:5}.icon-btn{width:38px;height:38px;border:1px solid transparent;background:transparent;border-radius:11px;display:grid;place-items:center;cursor:pointer}.icon-btn:hover{background:var(--panel2);border-color:var(--line)}.mode-tabs{display:flex;gap:4px;background:#0c1119;border:1px solid var(--line);padding:4px;border-radius:12px}.mode-tab{border:0;background:transparent;border-radius:9px;padding:8px 13px;color:var(--muted);cursor:pointer;font-size:13px;font-weight:700}.mode-tab.active{background:var(--panel3);color:#fff;box-shadow:0 2px 10px #0005}.model-pill{margin-left:auto;border:1px solid var(--line);background:#0e141e;color:#aab5c4;border-radius:999px;padding:7px 11px;font-size:11px;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.call-btn{border:1px solid #2b4a41;background:#11241e;color:var(--green);border-radius:11px;padding:8px 12px;cursor:pointer;font-size:13px;font-weight:750;display:flex;align-items:center;gap:7px}.call-btn:hover{background:#17352a}
+.workspace{flex:1;min-height:0;position:relative}.chat-view,.image-view{height:100%;display:flex;flex-direction:column}.messages{flex:1;overflow-y:auto;padding:28px 16px 18px;scroll-behavior:smooth}.welcome{max-width:820px;margin:8vh auto 0;text-align:center;padding:0 12px}.hero-mark{width:68px;height:68px;border-radius:23px;background:linear-gradient(135deg,#6bf4b2,#60d9ff 55%,#a78bfa);display:grid;place-items:center;margin:0 auto 20px;color:#07110d;font-size:27px;font-weight:950;box-shadow:0 16px 50px rgba(100,216,255,.2)}.welcome h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.045em;margin:0 0 9px}.welcome p{color:var(--muted);max-width:570px;margin:0 auto 28px;line-height:1.6}.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left}.suggestion{border:1px solid var(--line);background:linear-gradient(145deg,#111824,#0d121b);padding:15px;border-radius:14px;cursor:pointer;color:#d8dee7}.suggestion:hover{border-color:#40526d;transform:translateY(-1px)}.suggestion b{font-size:13px}.suggestion small{display:block;color:var(--muted);margin-top:5px}.msg{max-width:820px;margin:0 auto 20px;display:flex;gap:12px}.avatar{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;flex:none;font-size:12px;font-weight:900}.avatar.user{background:#27334a}.avatar.ai{background:linear-gradient(135deg,var(--green),var(--cyan));color:#06120e}.bubble{min-width:0;line-height:1.68;font-size:15px;width:100%}.bubble p{margin:0 0 10px}.bubble p:last-child{margin-bottom:0}.bubble pre{background:#05070a;border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto}.bubble code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.bubble :not(pre)>code{background:#151c28;padding:2px 5px;border-radius:5px}.bubble a{color:var(--cyan)}.bubble ul,.bubble ol{padding-left:23px}.msg-tools{display:flex;gap:5px;margin-top:9px}.tiny-btn{border:0;background:transparent;color:#6f7d91;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:11px}.tiny-btn:hover{background:#151d29;color:#d7dee8}.cursor{display:inline-block;width:7px;height:16px;background:var(--green);border-radius:2px;vertical-align:-3px;animation:blink .8s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.composer-shell{padding:8px 18px max(17px,env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 24%)}.composer{max-width:820px;margin:auto;border:1px solid #293448;background:#111721;border-radius:22px;box-shadow:0 10px 40px #0004}.composer textarea{display:block;width:100%;border:0;outline:0;resize:none;background:transparent;color:#fff;padding:15px 17px 5px;line-height:1.45;max-height:170px}.composer textarea::placeholder{color:#697589}.composer-bar{display:flex;align-items:center;padding:6px 8px 8px;gap:5px}.tool-btn{height:35px;padding:0 11px;border:0;background:transparent;border-radius:10px;color:#8d9aae;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px}.tool-btn:hover{background:#1a2230;color:#fff}.send{margin-left:auto;width:35px;height:35px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--green),var(--cyan));color:#06110d;cursor:pointer;font-weight:900}.send:disabled{opacity:.35}.hint{text-align:center;font-size:10px;color:#566176;margin-top:7px}
+.image-view{overflow:auto;padding:34px 18px}.studio{width:min(1060px,100%);margin:auto;display:grid;grid-template-columns:minmax(290px,390px) 1fr;gap:26px;align-items:start}.studio-panel,.canvas-panel{border:1px solid var(--line);background:rgba(13,17,24,.8);border-radius:20px;box-shadow:var(--shadow)}.studio-panel{padding:22px}.studio-panel h2{margin:0 0 5px;font-size:22px}.studio-panel>p{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 20px}.label{display:block;color:#aab4c4;font-size:12px;font-weight:700;margin:15px 0 7px}.prompt-box,.select,.text-field{width:100%;border:1px solid #2a3548;background:#0a0e14;color:#fff;border-radius:12px;padding:12px;outline:0}.prompt-box{min-height:128px;resize:vertical;line-height:1.5}.prompt-box:focus,.select:focus,.text-field:focus{border-color:#57718f}.chip-row{display:flex;flex-wrap:wrap;gap:7px}.style-chip{border:1px solid #283448;background:#101722;color:#8f9caf;border-radius:999px;padding:7px 10px;cursor:pointer;font-size:11px}.style-chip.active{border-color:#5fd7bd;color:#8ff4d2;background:#10241f}.generate{width:100%;border:0;background:linear-gradient(135deg,var(--green),var(--cyan) 60%,var(--violet));color:#07100d;border-radius:13px;padding:13px;margin-top:18px;font-weight:900;cursor:pointer}.generate:disabled{filter:grayscale(1);opacity:.5}.canvas-panel{min-height:540px;padding:16px;display:grid;place-items:center;overflow:hidden}.empty-canvas{text-align:center;color:#6d7a8f}.empty-canvas .orb{width:82px;height:82px;border-radius:28px;background:radial-gradient(circle at 35% 30%,#76f6c0,transparent 24%),linear-gradient(135deg,#152334,#111621);border:1px solid #29384d;margin:0 auto 16px;box-shadow:0 18px 50px #0008}.result-wrap{width:100%;text-align:center}.generated-image{max-width:100%;max-height:68vh;border-radius:15px;display:block;margin:auto;box-shadow:0 18px 48px #0009}.image-actions{display:flex;justify-content:center;gap:8px;margin-top:13px}.action-btn{border:1px solid #2d394d;background:#131b27;color:#e8edf4;padding:9px 13px;border-radius:10px;cursor:pointer;text-decoration:none;font-size:12px}.loader{width:52px;height:52px;border:3px solid #253144;border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin:auto}@keyframes spin{to{transform:rotate(360deg)}}
+.modal-bg{position:fixed;inset:0;background:#000b;z-index:50;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(10px)}.modal-bg.open{display:flex}.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:#101620;border:1px solid #2b3749;border-radius:20px;padding:22px;box-shadow:var(--shadow)}.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.modal h2{font-size:19px;margin:0}.close{border:0;background:#1b2432;width:32px;height:32px;border-radius:9px;cursor:pointer}.field{margin:14px 0}.field label{font-size:12px;font-weight:750;color:#aab4c3;display:block;margin-bottom:7px}.field small{color:#69758a;font-size:11px;display:block;line-height:1.45;margin-top:6px}.field input,.field select,.field textarea{width:100%;border:1px solid #2a3548;background:#080c12;color:#fff;border-radius:11px;padding:11px;outline:0}.field textarea{min-height:80px;resize:vertical}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.btn{border:1px solid #2d394b;background:#171f2c;border-radius:10px;padding:9px 15px;cursor:pointer}.btn.primary{background:var(--green);color:#06110d;border-color:var(--green);font-weight:800}
+.call-screen{position:fixed;inset:0;z-index:80;background:radial-gradient(circle at 50% 25%,#173c3a 0,#0a1116 38%,#06080c 78%);display:none;align-items:center;justify-content:center;padding:22px}.call-screen.open{display:flex}.call-card{text-align:center;width:min(600px,100%)}.call-avatar{width:116px;height:116px;border-radius:42px;background:linear-gradient(135deg,var(--green),var(--cyan) 58%,var(--violet));display:grid;place-items:center;color:#06110d;font-size:42px;font-weight:950;margin:0 auto 21px;box-shadow:0 0 0 10px #69f5b00c,0 0 0 22px #69f5b008,0 24px 70px #000}.call-screen.listening .call-avatar{animation:pulse 1.5s infinite}@keyframes pulse{50%{box-shadow:0 0 0 19px #69f5b018,0 0 0 38px #69f5b008,0 24px 70px #000}}.call-card h2{font-size:27px;margin:0 0 7px}.call-status{color:var(--green);font-size:13px}.wave{height:44px;display:flex;justify-content:center;align-items:center;gap:5px;margin:25px}.wave i{display:block;width:4px;height:8px;border-radius:5px;background:var(--green);animation:wave .75s ease-in-out infinite alternate}.wave i:nth-child(2){animation-delay:.12s}.wave i:nth-child(3){animation-delay:.24s}.wave i:nth-child(4){animation-delay:.36s}.wave i:nth-child(5){animation-delay:.48s}@keyframes wave{to{height:38px}}.call-transcript{min-height:76px;max-width:520px;margin:auto;color:#c8d0da;font-size:16px;line-height:1.55}.call-controls{display:flex;justify-content:center;gap:17px;margin-top:30px}.round{width:56px;height:56px;border-radius:50%;border:1px solid #2b3746;background:#17202c;display:grid;place-items:center;cursor:pointer}.round.active{background:#eef3f6;color:#080b10}.round.end{background:var(--danger);border-color:var(--danger)}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#111822;border:1px solid #2c394d;border-radius:11px;padding:10px 15px;color:#e8edf4;z-index:100;font-size:12px;display:none;box-shadow:var(--shadow)}
+@media(max-width:760px){.app{grid-template-columns:1fr}.sidebar{position:fixed;z-index:30;width:278px;height:100%;transform:translateX(-102%);transition:.22s}.sidebar.open{transform:none;box-shadow:20px 0 70px #000}.studio{grid-template-columns:1fr}.image-view{padding:20px 12px}.canvas-panel{min-height:350px}.topbar{padding:0 10px}.model-pill{display:none}.mode-tab{padding:8px 10px}.call-btn span{display:none}.suggestions{grid-template-columns:1fr}.welcome{margin-top:4vh}.messages{padding-inline:10px}.composer-shell{padding-inline:10px}.msg{gap:9px}.bubble{font-size:14px}}
 </style>
 </head>
 <body>
-
-<div id="sidebar">
-  <button id="newchat">+ New chat</button>
-  <div id="chatlist"></div>
-  <div id="sb-footer">
-    <button id="settings-btn"><span class="token-dot" id="token-dot"></span>Settings & API key</button>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="logo">A</div><div><strong>Apna AI</strong><small>Chat · Voice · Images</small></div></div>
+  <button class="new-chat" id="newChat">＋ New conversation</button>
+  <div class="nav-label">Recent</div><div class="history" id="history"></div>
+  <div class="side-bottom"><button class="side-btn" id="settingsBtn"><span class="status-dot"></span>Settings & models</button></div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <button class="icon-btn" id="menuBtn" aria-label="Menu">☰</button>
+    <div class="mode-tabs"><button class="mode-tab active" data-view="chat">Chat</button><button class="mode-tab" data-view="image">Create image</button></div>
+    <div class="model-pill" id="modelPill">Keyless AI</div>
+    <button class="call-btn" id="callBtn"><b>●</b><span>Voice call</span></button>
+  </header>
+  <div class="workspace">
+    <section class="chat-view" id="chatView"><div class="messages" id="messages"></div>
+      <div class="composer-shell"><div class="composer"><textarea id="input" rows="1" placeholder="Message Apna AI..."></textarea><div class="composer-bar"><button class="tool-btn" id="micBtn">◉ Voice</button><button class="tool-btn" id="toImageBtn">▧ Create image</button><button class="send" id="sendBtn">↑</button></div></div><div class="hint">Responses can be wrong. Verify important information.</div></div>
+    </section>
+    <section class="image-view hidden" id="imageView"><div class="studio">
+      <div class="studio-panel"><h2>AI Image Studio</h2><p>Describe anything. Apna AI will generate a real image you can save.</p>
+        <label class="label" for="imagePrompt">Your idea</label><textarea class="prompt-box" id="imagePrompt" placeholder="A cinematic portrait in neon rain, ultra detailed..."></textarea>
+        <label class="label">Style</label><div class="chip-row" id="styleChips"><button class="style-chip active" data-style="photorealistic, cinematic lighting, highly detailed">Realistic</button><button class="style-chip" data-style="digital illustration, rich colors, highly detailed">Digital art</button><button class="style-chip" data-style="anime illustration, expressive, polished">Anime</button><button class="style-chip" data-style="minimal 3D render, soft studio lighting">3D</button><button class="style-chip" data-style="professional logo mark, minimal vector design, clean background">Logo</button></div>
+        <label class="label" for="ratio">Size</label><select class="select" id="ratio"><option value="1024x1024">Square · 1024×1024</option><option value="1280x720">Landscape · 16:9</option><option value="720x1280">Portrait · 9:16</option><option value="1200x800">Photo · 3:2</option></select>
+        <label class="label" for="imageModel">Generator</label><select class="select" id="imageModel"><option value="flux">Flux · quality</option><option value="turbo">Turbo · fast</option></select>
+        <button class="generate" id="generateBtn">Generate image</button>
+      </div>
+      <div class="canvas-panel" id="canvas"><div class="empty-canvas"><div class="orb"></div><b>Your image appears here</b><p>Pick a style, write a prompt, hit Generate.</p></div></div>
+    </div></section>
   </div>
-</div>
-
-<div id="main">
-  <div id="topbar">
-    <button id="menu-btn" title="Toggle sidebar">&#9776;</button>
-    <div id="app-title">Apna AI</div>
-    <div id="model-badge"></div>
-  </div>
-  <div id="messages"></div>
-  <div id="composer-wrap">
-    <div id="composer">
-      <textarea id="input" rows="1" placeholder="Message Apna AI..."></textarea>
-      <button id="send-btn" title="Send">&#8593;</button>
-      <button id="stop-btn" title="Stop">&#9632;</button>
-    </div>
-    <div id="hint">Apna AI can make mistakes. Apna model, apna data.</div>
-  </div>
-</div>
-
-<div id="modal-bg">
-  <div id="modal">
-    <h2>Settings</h2>
-    <div class="field">
-      <label>API base URL</label>
-      <input id="set-base" placeholder="https://router.huggingface.co/v1">
-      <small>Default: free keyless AI (koi signup nahi). Bade models ke liye Hugging Face router URL + token use kar.</small>
-    </div>
-    <div class="field">
-      <label>Hugging Face token (optional)</label>
-      <input id="set-token" type="password" placeholder="hf_...">
-      <small>Sirf tab chahiye jab Hugging Face wale bade models (Llama 70B, DeepSeek R1) use karne ho. Free: huggingface.co/settings/tokens pe bana. Token sirf tere browser me save hota hai.</small>
-    </div>
-    <div class="field">
-      <label>Model</label>
-      <select id="set-model">
-        <option value="openai">GPT-OSS 20B (free, no key needed)</option>
-        <option value="Qwen/Qwen2.5-7B-Instruct">Qwen 2.5 7B (HF token)</option>
-        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B (HF token, powerful)</option>
-        <option value="deepseek-ai/DeepSeek-R1">DeepSeek R1 (HF token, reasoning beast)</option>
-        <option value="__custom">Custom model id...</option>
-      </select>
-      <input id="set-custom-model" placeholder="org/model-name" style="display:none;margin-top:8px">
-    </div>
-    <div class="field">
-      <label>System prompt (AI ki personality)</label>
-      <textarea id="set-system"></textarea>
-    </div>
-    <div class="field">
-      <label>Temperature: <span id="temp-val">0.7</span></label>
-      <input id="set-temp" type="range" min="0" max="1.5" step="0.1" value="0.7" style="padding:0">
-    </div>
-    <div id="modal-actions">
-      <button class="btn" id="modal-cancel">Cancel</button>
-      <button class="btn primary" id="modal-save">Save</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
+</main></div>
+<div class="modal-bg" id="settingsBg"><div class="modal"><div class="modal-head"><h2>Settings & models</h2><button class="close" id="settingsClose">×</button></div>
+  <div class="field"><label>AI model</label><select id="modelSelect"><optgroup label="Free — no key"><option value="pollinations::openai">Keyless AI · default</option><option value="pollinations::qwen-coder">Qwen Coder · free</option></optgroup><optgroup label="Anthropic Claude — your API key"><option value="anthropic::claude-sonnet-5">Claude Sonnet 5</option><option value="anthropic::claude-opus-4-8">Claude Opus 4.8</option><option value="anthropic::claude-haiku-4-5">Claude Haiku 4.5</option></optgroup></select></div>
+  <div class="field"><label>Anthropic API key (optional)</label><input id="anthropicKey" type="password" autocomplete="off" placeholder="sk-ant-api-..."><small>Only saved in this browser's localStorage. It is sent directly to Anthropic only when a Claude model is selected—never to Apna AI or Pollinations.</small></div>
+  <div class="field"><label>System prompt</label><textarea id="systemPrompt"></textarea></div>
+  <div class="field"><label>Creativity <span id="tempValue">0.7</span></label><input id="temperature" type="range" min="0" max="1" step="0.1"></div>
+  <div class="modal-actions"><button class="btn" id="settingsCancel">Cancel</button><button class="btn primary" id="settingsSave">Save settings</button></div>
+</div></div>
+<div class="call-screen" id="callScreen"><div class="call-card"><div class="call-avatar">A</div><h2>Apna AI</h2><div class="call-status" id="callStatus">Connecting…</div><div class="wave"><i></i><i></i><i></i><i></i><i></i></div><div class="call-transcript" id="callTranscript">Start talking. I’m listening.</div><div class="call-controls"><button class="round" id="muteBtn" title="Mute">🎙</button><button class="round active" id="speakerBtn" title="Speaker">🔊</button><button class="round end" id="endCallBtn" title="End call">✕</button></div></div></div>
+<div class="toast" id="toast"></div>
 <script>
-const $ = id => document.getElementById(id);
-const DEFAULTS = {
-  base: "https://text.pollinations.ai/openai",
-  token: "",
-  model: "openai",
-  system: "You are Apna AI, a friendly personal assistant. Reply in the same language the user writes in (Hindi, Hinglish or English). Keep answers short and natural, like a friend texting.",
-  temp: 0.7
-};
-const needsToken = () => settings.base.includes("huggingface.co") && !settings.token;
-let settings = {...DEFAULTS, ...JSON.parse(localStorage.getItem("apna-settings") || "{}")};
-let chats = JSON.parse(localStorage.getItem("apna-chats") || "[]");
-let activeId = null, aborter = null;
-
-function saveSettings(){ localStorage.setItem("apna-settings", JSON.stringify(settings)); }
-function saveChats(){ localStorage.setItem("apna-chats", JSON.stringify(chats)); }
-function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",2600); }
-function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-/* ---------- minimal markdown ---------- */
-function md(src){
-  let html = esc(src), codes = [];
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (m,l,c)=>{ codes.push("<pre><code>"+c.replace(/\n$/,"")+"</code></pre>"); return "\u0000"+(codes.length-1)+"\u0000"; });
-  html = html.replace(/^### (.*)$/gm,"<h3>$1</h3>").replace(/^## (.*)$/gm,"<h2>$1</h2>").replace(/^# (.*)$/gm,"<h1>$1</h1>");
-  html = html.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
-  html = html.replace(/`([^`\n]+)`/g,"<code>$1</code>");
-  html = html.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
-  html = html.replace(/^\s*[-*] (.*)$/gm,"<li>$1</li>");
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, m=>"<ul>"+m+"</ul>");
-  html = html.replace(/^\s*\d+\. (.*)$/gm,"<li>$1</li>");
-  html = html.split(/\n{2,}/).map(b=>/^<(h\d|ul|pre|li)/.test(b.trim())?b:"<p>"+b.replace(/\n/g,"<br>")+"</p>").join("");
-  html = html.replace(/\u0000(\d+)\u0000/g,(m,i)=>codes[+i]);
-  return html;
-}
-
-/* ---------- sidebar ---------- */
-function renderList(){
-  const el = $("chatlist"); el.innerHTML = "";
-  chats.slice().reverse().forEach(c=>{
-    const d = document.createElement("div");
-    d.className = "chat-item"+(c.id===activeId?" active":"");
-    const t = document.createElement("span"); t.textContent = c.title; d.appendChild(t);
-    const del = document.createElement("button"); del.className="del"; del.textContent="×";
-    del.onclick = e=>{ e.stopPropagation(); chats = chats.filter(x=>x.id!==c.id); if(activeId===c.id){activeId=null;} saveChats(); renderList(); renderMessages(); };
-    d.appendChild(del);
-    d.onclick = ()=>{ activeId=c.id; renderList(); renderMessages(); };
-    el.appendChild(d);
-  });
-  $("token-dot").className = "token-dot"+(settings.token?" ok":"");
-}
-function newChat(){ activeId = null; renderList(); renderMessages(); $("input").focus(); }
-function activeChat(){
-  let c = chats.find(x=>x.id===activeId);
-  if(!c){ c = {id:Date.now().toString(36), title:"New chat", messages:[], createdAt:Date.now()}; chats.push(c); activeId=c.id; }
-  return c;
-}
-
-/* ---------- messages ---------- */
-function renderMessages(){
-  const box = $("messages"); box.innerHTML = "";
-  const c = chats.find(x=>x.id===activeId);
-  $("model-badge").textContent = settings.model.split("/").pop();
-  if(!c || !c.messages.length){
-    box.innerHTML = `<div id="welcome"><h1>Kya haal hai?</h1><p>Apna AI — tera khud ka assistant, abhi ready hai, koi setup nahi chahiye. Aur powerful model chahiye to Settings me free HF token daal.</p>
-    <div class="sugg-grid">
-      <div class="sugg" data-q="Apne baare me bata, tu kaun hai?"><b>Intro</b><span>Apne baare me bata, tu kaun hai?</span></div>
-      <div class="sugg" data-q="Ek business idea de jo India me chal sake, kam budget me"><b>Business idea</b><span>Ek business idea de jo India me chal sake</span></div>
-      <div class="sugg" data-q="Python me ek simple chatbot ka code likh"><b>Code</b><span>Python me ek simple chatbot ka code likh</span></div>
-      <div class="sugg" data-q="Mujhe Hinglish me ek motivational line suna"><b>Motivation</b><span>Hinglish me ek motivational line suna</span></div>
-    </div></div>`;
-    box.querySelectorAll(".sugg").forEach(s=>s.onclick=()=>{ $("input").value=s.dataset.q; send(); });
-    return;
-  }
-  c.messages.forEach(m=>appendMsg(m.role, m.content, false));
-  box.scrollTop = box.scrollHeight;
-}
-function appendMsg(role, content, streaming){
-  const box = $("messages");
-  const w = document.getElementById("welcome"); if(w) w.remove();
-  const d = document.createElement("div"); d.className="msg";
-  d.innerHTML = `<div class="avatar ${role==="user"?"user":"ai"}">${role==="user"?"U":"A"}</div><div class="bubble"></div>`;
-  const b = d.querySelector(".bubble");
-  b.innerHTML = md(content) + (streaming?'<span class="cursor"></span>':"");
-  if(role==="assistant" && !streaming){
-    const cb = document.createElement("button"); cb.className="copy-btn"; cb.textContent="Copy";
-    cb.onclick = ()=>{ navigator.clipboard.writeText(content); toast("Copied"); };
-    b.appendChild(cb);
-  }
-  box.appendChild(d); box.scrollTop = box.scrollHeight;
-  return b;
-}
-
-/* ---------- chat ---------- */
-async function send(){
-  const text = $("input").value.trim();
-  if(!text || aborter) return;
-  if(needsToken()){ toast("Is model ke liye Settings me free HF token daal"); openModal(); return; }
-  const c = activeChat();
-  if(c.messages.length===0){ c.title = text.slice(0,42); }
-  c.messages.push({role:"user", content:text});
-  $("input").value=""; $("input").style.height="auto"; renderList(); renderMessages(); saveChats();
-
-  const bubble = appendMsg("assistant","",true);
-  $("send-btn").style.display="none"; $("stop-btn").style.display="flex";
-  aborter = new AbortController();
-  let full = "";
-  try{
-    const res = await fetch(settings.base.replace(/\/$/,"")+"/chat/completions",{
-      method:"POST",
-      headers:Object.assign({"Content-Type":"application/json"}, settings.token?{"Authorization":"Bearer "+settings.token}:{}),
-      signal: aborter.signal,
-      body: JSON.stringify({
-        model: settings.model,
-        messages: [{role:"system",content:settings.system}, ...c.messages],
-        temperature: settings.temp, stream: true, max_tokens: 1024
-      })
-    });
-    if(!res.ok){
-      const e = await res.text();
-      throw new Error(res.status===401 ? "Token galat hai — Settings me sahi token daal"
-        : res.status===429 ? "Rate limit — thoda ruk ke try kar"
-        : "Error "+res.status+": "+e.slice(0,160));
-    }
-    const reader = res.body.getReader(), dec = new TextDecoder();
-    let buf = "";
-    while(true){
-      const {done,value} = await reader.read();
-      if(done) break;
-      buf += dec.decode(value,{stream:true});
-      const parts = buf.split("\n"); buf = parts.pop();
-      for(const line of parts){
-        const t = line.trim();
-        if(!t.startsWith("data:")) continue;
-        const data = t.slice(5).trim();
-        if(data==="[DONE]") continue;
-        try{
-          const j = JSON.parse(data);
-          const delta = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content || "";
-          if(delta){ full += delta; bubble.innerHTML = md(full)+'<span class="cursor"></span>'; $("messages").scrollTop = $("messages").scrollHeight; }
-        }catch(e){}
-      }
-    }
-  }catch(e){
-    if(e.name==="AbortError"){ full += "\n\n*[stopped]*"; }
-    else { full = "**Error:** "+esc(e.message); }
-  }
-  aborter = null;
-  $("send-btn").style.display="flex"; $("stop-btn").style.display="none";
-  c.messages.push({role:"assistant", content:full});
-  saveChats(); renderMessages();
-}
-
-/* ---------- events ---------- */
-$("send-btn").onclick = send;
-$("stop-btn").onclick = ()=>{ if(aborter) aborter.abort(); };
-$("newchat").onclick = newChat;
-$("menu-btn").onclick = ()=>document.body.classList.toggle("sb-hidden");
-$("input").addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
-$("input").addEventListener("input", function(){ this.style.height="auto"; this.style.height=Math.min(this.scrollHeight,200)+"px"; });
-
-function openModal(){
-  $("set-base").value = settings.base; $("set-token").value = settings.token;
-  $("set-system").value = settings.system; $("set-temp").value = settings.temp;
-  $("temp-val").textContent = settings.temp;
-  const sel = $("set-model"), custom = $("set-custom-model");
-  if([...sel.options].some(o=>o.value===settings.model)){ sel.value = settings.model; custom.style.display="none"; }
-  else { sel.value="__custom"; custom.style.display="block"; custom.value=settings.model; }
-  $("modal-bg").classList.add("open");
-}
-$("settings-btn").onclick = openModal;
-$("modal-cancel").onclick = ()=>$("modal-bg").classList.remove("open");
-$("modal-bg").addEventListener("click", e=>{ if(e.target===$("modal-bg")) $("modal-bg").classList.remove("open"); });
-$("set-model").onchange = e=>{ $("set-custom-model").style.display = e.target.value==="__custom"?"block":"none"; };
-$("set-temp").oninput = e=>{ $("temp-val").textContent = e.target.value; };
-$("modal-save").onclick = ()=>{
-  settings.base = $("set-base").value.trim() || DEFAULTS.base;
-  settings.token = $("set-token").value.trim();
-  settings.model = $("set-model").value==="__custom" ? ($("set-custom-model").value.trim()||DEFAULTS.model) : $("set-model").value;
-  settings.system = $("set-system").value.trim() || DEFAULTS.system;
-  settings.temp = parseFloat($("set-temp").value);
-  saveSettings(); $("modal-bg").classList.remove("open");
-  renderList(); renderMessages(); toast("Saved");
-};
-
-renderList(); renderMessages();
+const $=id=>document.getElementById(id);
+const DEFAULTS={model:"pollinations::openai",anthropicKey:"",system:"You are Apna AI, a smart and friendly personal assistant. Reply in the same language as the user. If they use Hinglish, reply in natural Hinglish. Be direct, useful and conversational.",temperature:.7};
+let settings={...DEFAULTS,...safeJSON(localStorage.getItem("apna-settings-v2"),{})};
+let chats=safeJSON(localStorage.getItem("apna-chats-v2"),[]),activeId=null,controller=null,currentView="chat";
+let recognition=null,callActive=false,callMuted=false,speakerOn=true,callBusy=false;
+function safeJSON(v,f){try{return JSON.parse(v)||f}catch{return f}}
+function saveSettings(){localStorage.setItem("apna-settings-v2",JSON.stringify(settings))}function saveChats(){localStorage.setItem("apna-chats-v2",JSON.stringify(chats))}
+function toast(s){let t=$("toast");t.textContent=s;t.style.display="block";clearTimeout(t._x);t._x=setTimeout(()=>t.style.display="none",2800)}
+function esc(s=""){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function md(src=""){let h=esc(src),blocks=[];h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,l,c)=>{blocks.push(`<pre><code>${c.replace(/\n$/,"")}</code></pre>`);return `\0${blocks.length-1}\0`});h=h.replace(/^### (.+)$/gm,"<h3>$1</h3>").replace(/^## (.+)$/gm,"<h2>$1</h2>").replace(/^# (.+)$/gm,"<h1>$1</h1>").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`\n]+)`/g,"<code>$1</code>").replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/^\s*[-*] (.+)$/gm,"<li>$1</li>").replace(/(<li>.*<\/li>\n?)+/g,m=>"<ul>"+m+"</ul>");h=h.split(/\n{2,}/).map(b=>/^<(h\d|ul|pre)/.test(b.trim())?b:"<p>"+b.replace(/\n/g,"<br>")+"</p>").join("");return h.replace(/\0(\d+)\0/g,(_,i)=>blocks[+i])}
+function currentModel(){let [provider,model]=settings.model.split("::");return{provider,model}}
+function modelName(){let {provider,model}=currentModel();if(provider==="anthropic")return model.replace("claude-","").split("-").map(x=>x[0]?.toUpperCase()+x.slice(1)).join(" ");return model==="openai"?"Keyless AI":model.replaceAll("-"," ")}
+function activeChat(){let c=chats.find(x=>x.id===activeId);if(!c){c={id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(36),title:"New conversation",messages:[],created:Date.now()};chats.push(c);activeId=c.id}return c}
+function renderHistory(){let h=$("history");h.innerHTML="";[...chats].reverse().forEach(c=>{let d=document.createElement("div");d.className="history-item"+(c.id===activeId?" active":"");d.innerHTML=`<span>${esc(c.title)}</span><button title="Delete">×</button>`;d.onclick=()=>{activeId=c.id;renderHistory();renderMessages();closeSidebar()};d.querySelector("button").onclick=e=>{e.stopPropagation();chats=chats.filter(x=>x.id!==c.id);if(activeId===c.id)activeId=null;saveChats();renderHistory();renderMessages()};h.appendChild(d)});$("modelPill").textContent=modelName()}
+function appendMsg(role,content,streaming=false){let d=document.createElement("div");d.className="msg";d.innerHTML=`<div class="avatar ${role==='user'?'user':'ai'}">${role==='user'?'Y':'A'}</div><div class="bubble">${md(content)}${streaming?'<span class="cursor"></span>':''}</div>`;let b=d.querySelector(".bubble");if(role==="assistant"&&!streaming){let tools=document.createElement("div");tools.className="msg-tools";tools.innerHTML='<button class="tiny-btn">Copy</button><button class="tiny-btn">Listen</button>';tools.children[0].onclick=()=>navigator.clipboard.writeText(content).then(()=>toast("Copied"));tools.children[1].onclick=()=>speak(content);b.appendChild(tools)}$("messages").appendChild(d);$("messages").scrollTop=$("messages").scrollHeight;return b}
+function renderMessages(){let box=$("messages");box.innerHTML="";let c=chats.find(x=>x.id===activeId);if(!c||!c.messages.length){box.innerHTML=`<div class="welcome"><div class="hero-mark">A</div><h1>Your AI, your way.</h1><p>Chat naturally, call hands-free, write code, brainstorm ideas, or generate images — all inside one app.</p><div class="suggestions"><button class="suggestion" data-q="Build me a practical 7-day plan to learn Python"><b>Learn anything</b><small>A practical 7-day Python plan</small></button><button class="suggestion" data-q="Write a modern responsive portfolio website in one HTML file"><b>Build code</b><small>Create a complete website</small></button><button class="suggestion" data-q="Give me 5 unusual app ideas that solve real problems in India"><b>Find ideas</b><small>Real problems, original angles</small></button><button class="suggestion" data-image="A futuristic Indian city at night, cinematic aerial view"><b>Create an image</b><small>Generate a cinematic visual</small></button></div></div>`;box.querySelectorAll("[data-q]").forEach(x=>x.onclick=()=>{$("input").value=x.dataset.q;send()});box.querySelector("[data-image]").onclick=e=>{switchView("image");$("imagePrompt").value=e.currentTarget.dataset.image};return}c.messages.forEach(m=>appendMsg(m.role,m.content));box.scrollTop=box.scrollHeight}
+async function callModel(messages,onDelta){let {provider,model}=currentModel();if(provider==="anthropic"){if(!settings.anthropicKey)throw new Error("Claude ke liye Settings me apni Anthropic API key daal");let res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",signal:controller?.signal,headers:{"content-type":"application/json","x-api-key":settings.anthropicKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model,max_tokens:2048,system:settings.system,messages:messages.map(m=>({role:m.role,content:m.content}))})});let data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data?.error?.message||`Claude error ${res.status}`);let text=(data.content||[]).filter(x=>x.type==="text").map(x=>x.text).join("\n");onDelta?.(text,true);return text}
+let res=await fetch("https://text.pollinations.ai/openai/chat/completions",{method:"POST",signal:controller?.signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({model,messages:[{role:"system",content:settings.system},...messages],temperature:settings.temperature,stream:true,max_tokens:2048})});if(!res.ok)throw new Error(res.status===429?"AI busy hai — thoda ruk ke try kar":`AI error ${res.status}`);if(!res.body){let j=await res.json();let t=j.choices?.[0]?.message?.content||"";onDelta?.(t,true);return t}let reader=res.body.getReader(),dec=new TextDecoder(),buf="",full="";while(true){let {done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});let lines=buf.split("\n");buf=lines.pop();for(let line of lines){let s=line.trim();if(!s.startsWith("data:"))continue;let raw=s.slice(5).trim();if(raw==="[DONE]")continue;try{let j=JSON.parse(raw),part=j.choices?.[0]?.delta?.content||"";if(part){full+=part;onDelta?.(full,false)}}catch{}}}return full}
+async function send(textOverride=null,opts={}){let text=(textOverride??$("input").value).trim();if(!text||controller)return null;let selected=currentModel();if(selected.provider==="anthropic"&&!settings.anthropicKey){toast("Claude use karne ke liye apni Anthropic API key add kar");openSettings();return null}let c=activeChat();if(!c.messages.length)c.title=text.slice(0,48);c.messages.push({role:"user",content:text});saveChats();renderHistory();if(!opts.voice){$("input").value="";$("input").style.height="auto";renderMessages()}controller=new AbortController();$("sendBtn").disabled=true;let bubble=opts.voice?null:appendMsg("assistant","",true),full="";try{full=await callModel(c.messages,t=>{full=t;if(bubble){bubble.innerHTML=md(full)+'<span class="cursor"></span>';$("messages").scrollTop=$("messages").scrollHeight}});if(!full)full="I couldn't make a response. Try again."}catch(e){if(e.name==="AbortError")full="Response stopped.";else full="Error: "+e.message}finally{controller=null;$("sendBtn").disabled=false}c.messages.push({role:"assistant",content:full});saveChats();if(!opts.voice)renderMessages();return full}
+function switchView(v){currentView=v;$("chatView").classList.toggle("hidden",v!=="chat");$("imageView").classList.toggle("hidden",v!=="image");document.querySelectorAll(".mode-tab").forEach(x=>x.classList.toggle("active",x.dataset.view===v));if(v==="image")setTimeout(()=>$("imagePrompt").focus(),60);closeSidebar()}
+function closeSidebar(){$("sidebar").classList.remove("open")}
+function speechRecognition(){let R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return null;let r=new R();r.lang="en-IN";r.interimResults=true;r.continuous=false;return r}
+function speak(text,done){if(!("speechSynthesis" in window)){done?.();return}speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text.replace(/[*#`]/g,""));u.lang=/[\u0900-\u097F]/.test(text)?"hi-IN":"en-IN";u.rate=1.02;u.pitch=1;u.volume=speakerOn?1:0;u.onend=()=>done?.();u.onerror=()=>done?.();speechSynthesis.speak(u)}
+function quickMic(){let r=speechRecognition();if(!r){toast("Voice input is not supported in this browser");return}$("micBtn").textContent="● Listening";r.onresult=e=>{let t=Array.from(e.results).map(x=>x[0].transcript).join("");$("input").value=t};r.onend=()=>{$("micBtn").textContent="◉ Voice"};r.onerror=()=>{$("micBtn").textContent="◉ Voice";toast("Microphone permission needed")};r.start()}
+function startCall(){let {provider}=currentModel();if(provider==="anthropic"&&!settings.anthropicKey){toast("Claude call ke liye Anthropic key add kar");openSettings();return}recognition=speechRecognition();if(!recognition){toast("Voice calls need Chrome or Edge with microphone access");return}callActive=true;callMuted=false;$("callScreen").classList.add("open","listening");$("callStatus").textContent="Listening";$("callTranscript").textContent="Bol, main sun raha hoon…";setupCallRecognition();try{recognition.start()}catch{}}
+function setupCallRecognition(){recognition.lang="en-IN";recognition.interimResults=true;recognition.continuous=false;recognition.onresult=e=>{let final="",interim="";for(let i=e.resultIndex;i<e.results.length;i++){let t=e.results[i][0].transcript;if(e.results[i].isFinal)final+=t;else interim+=t}$("callTranscript").textContent=final||interim||"Listening…";if(final)handleCallTurn(final)};recognition.onend=()=>{if(callActive&&!callMuted&&!callBusy)setTimeout(()=>{try{recognition.start()}catch{}},400)};recognition.onerror=e=>{if(e.error!=="no-speech")$("callStatus").textContent=e.error==="not-allowed"?"Microphone blocked":"Listening paused"}}
+async function handleCallTurn(text){if(callBusy)return;callBusy=true;$("callScreen").classList.remove("listening");$("callStatus").textContent="Thinking…";try{recognition.stop()}catch{}let reply=await send(text,{voice:true});if(!callActive){callBusy=false;return}$("callTranscript").textContent=reply;$("callStatus").textContent="Speaking";speak(reply,()=>{callBusy=false;if(callActive&&!callMuted){$("callScreen").classList.add("listening");$("callStatus").textContent="Listening";$("callTranscript").textContent="Bol, main sun raha hoon…";try{recognition.start()}catch{}}})}
+function endCall(){callActive=false;callBusy=false;try{recognition?.stop()}catch{}speechSynthesis?.cancel();$("callScreen").classList.remove("open","listening");renderHistory();renderMessages()}
+function openSettings(){$("modelSelect").value=settings.model;$("anthropicKey").value=settings.anthropicKey;$("systemPrompt").value=settings.system;$("temperature").value=settings.temperature;$("tempValue").textContent=settings.temperature;$("settingsBg").classList.add("open")}
+function closeSettings(){$("settingsBg").classList.remove("open")}
+async function generateImage(){let prompt=$("imagePrompt").value.trim();if(!prompt){toast("Pehle image describe kar");return}let style=document.querySelector(".style-chip.active")?.dataset.style||"",[width,height]=$("ratio").value.split("x"),model=$("imageModel").value,seed=Math.floor(Math.random()*1e9);let full=`${prompt}, ${style}`;let url=`https://image.pollinations.ai/prompt/${encodeURIComponent(full)}?model=${encodeURIComponent(model)}&width=${width}&height=${height}&seed=${seed}&enhance=true&safe=true`;let canvas=$("canvas"),btn=$("generateBtn");btn.disabled=true;btn.textContent="Generating…";canvas.innerHTML='<div class="empty-canvas"><div class="loader"></div><p>Creating your image…</p></div>';let img=new Image();img.className="generated-image";img.alt=prompt;img.onload=()=>{canvas.innerHTML="";let wrap=document.createElement("div");wrap.className="result-wrap";wrap.appendChild(img);let actions=document.createElement("div");actions.className="image-actions";actions.innerHTML='<a class="action-btn" target="_blank" rel="noopener">Open full size</a><button class="action-btn">Generate again</button>';actions.children[0].href=url;actions.children[1].onclick=generateImage;wrap.appendChild(actions);canvas.appendChild(wrap);btn.disabled=false;btn.textContent="Generate image"};img.onerror=()=>{canvas.innerHTML='<div class="empty-canvas"><b>Generation failed</b><p>Service busy ho sakti hai. Ek baar phir try kar.</p></div>';btn.disabled=false;btn.textContent="Try again"};img.src=url}
+$("newChat").onclick=()=>{activeId=null;switchView("chat");renderHistory();renderMessages();$("input").focus()};$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");document.querySelectorAll(".mode-tab").forEach(x=>x.onclick=()=>switchView(x.dataset.view));$("toImageBtn").onclick=()=>switchView("image");$("sendBtn").onclick=()=>send();$("input").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}};$("input").oninput=function(){this.style.height="auto";this.style.height=Math.min(this.scrollHeight,170)+"px"};$("micBtn").onclick=quickMic;$("callBtn").onclick=startCall;$("endCallBtn").onclick=endCall;$("muteBtn").onclick=()=>{callMuted=!callMuted;$("muteBtn").classList.toggle("active",callMuted);if(callMuted){try{recognition.stop()}catch{}$("callStatus").textContent="Muted"}else{try{recognition.start()}catch{}$("callStatus").textContent="Listening"}};$("speakerBtn").onclick=()=>{speakerOn=!speakerOn;$("speakerBtn").classList.toggle("active",speakerOn);if(!speakerOn)speechSynthesis.cancel()};$("settingsBtn").onclick=openSettings;$("settingsClose").onclick=closeSettings;$("settingsCancel").onclick=closeSettings;$("settingsBg").onclick=e=>{if(e.target===$("settingsBg"))closeSettings()};$("temperature").oninput=e=>$("tempValue").textContent=e.target.value;$("settingsSave").onclick=()=>{settings.model=$("modelSelect").value;settings.anthropicKey=$("anthropicKey").value.trim();settings.system=$("systemPrompt").value.trim()||DEFAULTS.system;settings.temperature=+$('temperature').value;saveSettings();closeSettings();renderHistory();toast("Settings saved in this browser")};document.querySelectorAll(".style-chip").forEach(x=>x.onclick=()=>{document.querySelectorAll(".style-chip").forEach(y=>y.classList.remove("active"));x.classList.add("active")});$("generateBtn").onclick=generateImage;
+renderHistory();renderMessages();
 </script>
-</body>
-</html>
+</body></html>
