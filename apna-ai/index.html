@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apna AI</title>
+<style>
+  :root{
+    --bg:#212121; --panel:#171717; --panel2:#2f2f2f; --hover:#2f2f2f;
+    --text:#ececec; --muted:#9b9b9b; --border:#3a3a3a;
+    --accent:#10a37f; --user-bubble:#2f2f2f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;overflow:hidden}
+
+  /* ---------- sidebar ---------- */
+  #sidebar{width:260px;min-width:260px;background:var(--panel);display:flex;flex-direction:column;padding:12px 10px;transition:margin .25s ease}
+  body.sb-hidden #sidebar{margin-left:-260px}
+  #newchat{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;cursor:pointer;font-size:14px;width:100%;text-align:left;display:flex;gap:10px;align-items:center}
+  #newchat:hover{background:var(--hover)}
+  #chatlist{flex:1;overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:2px}
+  .chat-item{padding:9px 12px;border-radius:8px;font-size:14px;cursor:pointer;color:#d7d7d7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;justify-content:space-between;align-items:center}
+  .chat-item:hover{background:var(--hover)}
+  .chat-item.active{background:var(--panel2)}
+  .chat-item .del{display:none;color:var(--muted);background:none;border:none;cursor:pointer;font-size:15px;padding:0 2px}
+  .chat-item:hover .del{display:block}
+  .chat-item .del:hover{color:#ff6b6b}
+  #sb-footer{border-top:1px solid var(--border);padding-top:10px}
+  #settings-btn{background:none;border:none;color:var(--text);font-size:14px;cursor:pointer;padding:9px 12px;border-radius:8px;width:100%;text-align:left}
+  #settings-btn:hover{background:var(--hover)}
+  .token-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff6b6b;margin-right:8px}
+  .token-dot.ok{background:#51cf66}
+
+  /* ---------- main ---------- */
+  #main{flex:1;display:flex;flex-direction:column;min-width:0}
+  #topbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border)}
+  #menu-btn{background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px}
+  #menu-btn:hover{background:var(--hover)}
+  #app-title{font-weight:600;font-size:16px}
+  #model-badge{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:3px 10px}
+
+  #messages{flex:1;overflow-y:auto;padding:24px 0 16px}
+  .msg{max-width:760px;margin:0 auto;padding:12px 24px;display:flex;gap:14px}
+  .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+  .avatar.user{background:#5436da}
+  .avatar.ai{background:var(--accent);color:#06281f}
+  .bubble{flex:1;min-width:0;line-height:1.65;font-size:15px;overflow-wrap:break-word}
+  .bubble p{margin:0 0 10px}.bubble p:last-child{margin-bottom:0}
+  .bubble pre{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;margin:10px 0;font-size:13px}
+  .bubble code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .bubble :not(pre)>code{background:#0d0d0d;padding:2px 6px;border-radius:5px;font-size:13px}
+  .bubble ul,.bubble ol{margin:8px 0 8px 22px}
+  .bubble li{margin:4px 0}
+  .bubble a{color:#7cc7ff}
+  .bubble h1,.bubble h2,.bubble h3{margin:12px 0 6px}
+  .copy-btn{margin-top:8px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .copy-btn:hover{color:var(--text);border-color:var(--muted)}
+  .cursor{display:inline-block;width:8px;height:16px;background:var(--accent);animation:blink 1s infinite;vertical-align:-2px}
+  @keyframes blink{50%{opacity:0}}
+
+  #welcome{max-width:760px;margin:8vh auto 0;padding:0 24px;text-align:center}
+  #welcome h1{font-size:30px;margin-bottom:8px}
+  #welcome p{color:var(--muted);margin-bottom:28px}
+  .sugg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left}
+  .sugg{border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;font-size:14px;color:#d7d7d7}
+  .sugg:hover{background:var(--hover)}
+  .sugg b{display:block;margin-bottom:4px;color:var(--text)}
+  .sugg span{color:var(--muted);font-size:13px}
+
+  /* ---------- composer ---------- */
+  #composer-wrap{padding:12px 16px 18px;background:linear-gradient(transparent,var(--bg) 30%)}
+  #composer{max-width:760px;margin:0 auto;background:var(--panel2);border-radius:24px;display:flex;align-items:flex-end;padding:10px 8px 10px 18px;gap:8px}
+  #input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;resize:none;max-height:200px;line-height:1.5;font-family:inherit}
+  #send-btn,#stop-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  #send-btn{background:#fff;color:#000}
+  #send-btn:disabled{opacity:.35;cursor:default}
+  #stop-btn{background:#fff;color:#000;display:none}
+  #hint{text-align:center;color:var(--muted);font-size:12px;margin-top:8px}
+
+  /* ---------- settings modal ---------- */
+  #modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50}
+  #modal-bg.open{display:flex}
+  #modal{background:var(--panel2);border:1px solid var(--border);border-radius:14px;width:92%;max-width:520px;padding:24px;max-height:88vh;overflow-y:auto}
+  #modal h2{font-size:18px;margin-bottom:16px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-size:14px;font-family:inherit}
+  .field textarea{resize:vertical;min-height:70px}
+  .field small{color:var(--muted);font-size:12px;display:block;margin-top:5px;line-height:1.5}
+  #modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .btn{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:8px;padding:9px 18px;cursor:pointer;font-size:14px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06281f;font-weight:600}
+  .btn:hover{filter:brightness(1.1)}
+
+  #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#0d0d0d;border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:10px;font-size:14px;display:none;z-index:60;max-width:90%}
+
+  @media(max-width:640px){
+    .sugg-grid{grid-template-columns:1fr}
+    #sidebar{position:fixed;z-index:40;height:100%}
+    body.sb-hidden #sidebar{margin-left:-260px}
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <button id="newchat">+ New chat</button>
+  <div id="chatlist"></div>
+  <div id="sb-footer">
+    <button id="settings-btn"><span class="token-dot" id="token-dot"></span>Settings & API key</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <button id="menu-btn" title="Toggle sidebar">&#9776;</button>
+    <div id="app-title">Apna AI</div>
+    <div id="model-badge"></div>
+  </div>
+  <div id="messages"></div>
+  <div id="composer-wrap">
+    <div id="composer">
+      <textarea id="input" rows="1" placeholder="Message Apna AI..."></textarea>
+      <button id="send-btn" title="Send">&#8593;</button>
+      <button id="stop-btn" title="Stop">&#9632;</button>
+    </div>
+    <div id="hint">Apna AI can make mistakes. Apna model, apna data.</div>
+  </div>
+</div>
+
+<div id="modal-bg">
+  <div id="modal">
+    <h2>Settings</h2>
+    <div class="field">
+      <label>API base URL</label>
+      <input id="set-base" placeholder="https://router.huggingface.co/v1">
+      <small>Default: free keyless AI (koi signup nahi). Bade models ke liye Hugging Face router URL + token use kar.</small>
+    </div>
+    <div class="field">
+      <label>Hugging Face token (optional)</label>
+      <input id="set-token" type="password" placeholder="hf_...">
+      <small>Sirf tab chahiye jab Hugging Face wale bade models (Llama 70B, DeepSeek R1) use karne ho. Free: huggingface.co/settings/tokens pe bana. Token sirf tere browser me save hota hai.</small>
+    </div>
+    <div class="field">
+      <label>Model</label>
+      <select id="set-model">
+        <option value="openai">GPT-OSS 20B (free, no key needed)</option>
+        <option value="Qwen/Qwen2.5-7B-Instruct">Qwen 2.5 7B (HF token)</option>
+        <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B (HF token, powerful)</option>
+        <option value="deepseek-ai/DeepSeek-R1">DeepSeek R1 (HF token, reasoning beast)</option>
+        <option value="__custom">Custom model id...</option>
+      </select>
+      <input id="set-custom-model" placeholder="org/model-name" style="display:none;margin-top:8px">
+    </div>
+    <div class="field">
+      <label>System prompt (AI ki personality)</label>
+      <textarea id="set-system"></textarea>
+    </div>
+    <div class="field">
+      <label>Temperature: <span id="temp-val">0.7</span></label>
+      <input id="set-temp" type="range" min="0" max="1.5" step="0.1" value="0.7" style="padding:0">
+    </div>
+    <div id="modal-actions">
+      <button class="btn" id="modal-cancel">Cancel</button>
+      <button class="btn primary" id="modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const DEFAULTS = {
+  base: "https://text.pollinations.ai/openai",
+  token: "",
+  model: "openai",
+  system: "You are Apna AI, a friendly personal assistant. Reply in the same language the user writes in (Hindi, Hinglish or English). Keep answers short and natural, like a friend texting.",
+  temp: 0.7
+};
+const needsToken = () => settings.base.includes("huggingface.co") && !settings.token;
+let settings = {...DEFAULTS, ...JSON.parse(localStorage.getItem("apna-settings") || "{}")};
+let chats = JSON.parse(localStorage.getItem("apna-chats") || "[]");
+let activeId = null, aborter = null;
+
+function saveSettings(){ localStorage.setItem("apna-settings", JSON.stringify(settings)); }
+function saveChats(){ localStorage.setItem("apna-chats", JSON.stringify(chats)); }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none",2600); }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- minimal markdown ---------- */
+function md(src){
+  let html = esc(src), codes = [];
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (m,l,c)=>{ codes.push("<pre><code>"+c.replace(/\n$/,"")+"</code></pre>"); return "\u0000"+(codes.length-1)+"\u0000"; });
+  html = html.replace(/^### (.*)$/gm,"<h3>$1</h3>").replace(/^## (.*)$/gm,"<h2>$1</h2>").replace(/^# (.*)$/gm,"<h1>$1</h1>");
+  html = html.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  html = html.replace(/`([^`\n]+)`/g,"<code>$1</code>");
+  html = html.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  html = html.replace(/^\s*[-*] (.*)$/gm,"<li>$1</li>");
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, m=>"<ul>"+m+"</ul>");
+  html = html.replace(/^\s*\d+\. (.*)$/gm,"<li>$1</li>");
+  html = html.split(/\n{2,}/).map(b=>/^<(h\d|ul|pre|li)/.test(b.trim())?b:"<p>"+b.replace(/\n/g,"<br>")+"</p>").join("");
+  html = html.replace(/\u0000(\d+)\u0000/g,(m,i)=>codes[+i]);
+  return html;
+}
+
+/* ---------- sidebar ---------- */
+function renderList(){
+  const el = $("chatlist"); el.innerHTML = "";
+  chats.slice().reverse().forEach(c=>{
+    const d = document.createElement("div");
+    d.className = "chat-item"+(c.id===activeId?" active":"");
+    const t = document.createElement("span"); t.textContent = c.title; d.appendChild(t);
+    const del = document.createElement("button"); del.className="del"; del.textContent="×";
+    del.onclick = e=>{ e.stopPropagation(); chats = chats.filter(x=>x.id!==c.id); if(activeId===c.id){activeId=null;} saveChats(); renderList(); renderMessages(); };
+    d.appendChild(del);
+    d.onclick = ()=>{ activeId=c.id; renderList(); renderMessages(); };
+    el.appendChild(d);
+  });
+  $("token-dot").className = "token-dot"+(settings.token?" ok":"");
+}
+function newChat(){ activeId = null; renderList(); renderMessages(); $("input").focus(); }
+function activeChat(){
+  let c = chats.find(x=>x.id===activeId);
+  if(!c){ c = {id:Date.now().toString(36), title:"New chat", messages:[], createdAt:Date.now()}; chats.push(c); activeId=c.id; }
+  return c;
+}
+
+/* ---------- messages ---------- */
+function renderMessages(){
+  const box = $("messages"); box.innerHTML = "";
+  const c = chats.find(x=>x.id===activeId);
+  $("model-badge").textContent = settings.model.split("/").pop();
+  if(!c || !c.messages.length){
+    box.innerHTML = `<div id="welcome"><h1>Kya haal hai?</h1><p>Apna AI — tera khud ka assistant, abhi ready hai, koi setup nahi chahiye. Aur powerful model chahiye to Settings me free HF token daal.</p>
+    <div class="sugg-grid">
+      <div class="sugg" data-q="Apne baare me bata, tu kaun hai?"><b>Intro</b><span>Apne baare me bata, tu kaun hai?</span></div>
+      <div class="sugg" data-q="Ek business idea de jo India me chal sake, kam budget me"><b>Business idea</b><span>Ek business idea de jo India me chal sake</span></div>
+      <div class="sugg" data-q="Python me ek simple chatbot ka code likh"><b>Code</b><span>Python me ek simple chatbot ka code likh</span></div>
+      <div class="sugg" data-q="Mujhe Hinglish me ek motivational line suna"><b>Motivation</b><span>Hinglish me ek motivational line suna</span></div>
+    </div></div>`;
+    box.querySelectorAll(".sugg").forEach(s=>s.onclick=()=>{ $("input").value=s.dataset.q; send(); });
+    return;
+  }
+  c.messages.forEach(m=>appendMsg(m.role, m.content, false));
+  box.scrollTop = box.scrollHeight;
+}
+function appendMsg(role, content, streaming){
+  const box = $("messages");
+  const w = document.getElementById("welcome"); if(w) w.remove();
+  const d = document.createElement("div"); d.className="msg";
+  d.innerHTML = `<div class="avatar ${role==="user"?"user":"ai"}">${role==="user"?"U":"A"}</div><div class="bubble"></div>`;
+  const b = d.querySelector(".bubble");
+  b.innerHTML = md(content) + (streaming?'<span class="cursor"></span>':"");
+  if(role==="assistant" && !streaming){
+    const cb = document.createElement("button"); cb.className="copy-btn"; cb.textContent="Copy";
+    cb.onclick = ()=>{ navigator.clipboard.writeText(content); toast("Copied"); };
+    b.appendChild(cb);
+  }
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+  return b;
+}
+
+/* ---------- chat ---------- */
+async function send(){
+  const text = $("input").value.trim();
+  if(!text || aborter) return;
+  if(needsToken()){ toast("Is model ke liye Settings me free HF token daal"); openModal(); return; }
+  const c = activeChat();
+  if(c.messages.length===0){ c.title = text.slice(0,42); }
+  c.messages.push({role:"user", content:text});
+  $("input").value=""; $("input").style.height="auto"; renderList(); renderMessages(); saveChats();
+
+  const bubble = appendMsg("assistant","",true);
+  $("send-btn").style.display="none"; $("stop-btn").style.display="flex";
+  aborter = new AbortController();
+  let full = "";
+  try{
+    const res = await fetch(settings.base.replace(/\/$/,"")+"/chat/completions",{
+      method:"POST",
+      headers:Object.assign({"Content-Type":"application/json"}, settings.token?{"Authorization":"Bearer "+settings.token}:{}),
+      signal: aborter.signal,
+      body: JSON.stringify({
+        model: settings.model,
+        messages: [{role:"system",content:settings.system}, ...c.messages],
+        temperature: settings.temp, stream: true, max_tokens: 1024
+      })
+    });
+    if(!res.ok){
+      const e = await res.text();
+      throw new Error(res.status===401 ? "Token galat hai — Settings me sahi token daal"
+        : res.status===429 ? "Rate limit — thoda ruk ke try kar"
+        : "Error "+res.status+": "+e.slice(0,160));
+    }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    while(true){
+      const {done,value} = await reader.read();
+      if(done) break;
+      buf += dec.decode(value,{stream:true});
+      const parts = buf.split("\n"); buf = parts.pop();
+      for(const line of parts){
+        const t = line.trim();
+        if(!t.startsWith("data:")) continue;
+        const data = t.slice(5).trim();
+        if(data==="[DONE]") continue;
+        try{
+          const j = JSON.parse(data);
+          const delta = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content || "";
+          if(delta){ full += delta; bubble.innerHTML = md(full)+'<span class="cursor"></span>'; $("messages").scrollTop = $("messages").scrollHeight; }
+        }catch(e){}
+      }
+    }
+  }catch(e){
+    if(e.name==="AbortError"){ full += "\n\n*[stopped]*"; }
+    else { full = "**Error:** "+esc(e.message); }
+  }
+  aborter = null;
+  $("send-btn").style.display="flex"; $("stop-btn").style.display="none";
+  c.messages.push({role:"assistant", content:full});
+  saveChats(); renderMessages();
+}
+
+/* ---------- events ---------- */
+$("send-btn").onclick = send;
+$("stop-btn").onclick = ()=>{ if(aborter) aborter.abort(); };
+$("newchat").onclick = newChat;
+$("menu-btn").onclick = ()=>document.body.classList.toggle("sb-hidden");
+$("input").addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
+$("input").addEventListener("input", function(){ this.style.height="auto"; this.style.height=Math.min(this.scrollHeight,200)+"px"; });
+
+function openModal(){
+  $("set-base").value = settings.base; $("set-token").value = settings.token;
+  $("set-system").value = settings.system; $("set-temp").value = settings.temp;
+  $("temp-val").textContent = settings.temp;
+  const sel = $("set-model"), custom = $("set-custom-model");
+  if([...sel.options].some(o=>o.value===settings.model)){ sel.value = settings.model; custom.style.display="none"; }
+  else { sel.value="__custom"; custom.style.display="block"; custom.value=settings.model; }
+  $("modal-bg").classList.add("open");
+}
+$("settings-btn").onclick = openModal;
+$("modal-cancel").onclick = ()=>$("modal-bg").classList.remove("open");
+$("modal-bg").addEventListener("click", e=>{ if(e.target===$("modal-bg")) $("modal-bg").classList.remove("open"); });
+$("set-model").onchange = e=>{ $("set-custom-model").style.display = e.target.value==="__custom"?"block":"none"; };
+$("set-temp").oninput = e=>{ $("temp-val").textContent = e.target.value; };
+$("modal-save").onclick = ()=>{
+  settings.base = $("set-base").value.trim() || DEFAULTS.base;
+  settings.token = $("set-token").value.trim();
+  settings.model = $("set-model").value==="__custom" ? ($("set-custom-model").value.trim()||DEFAULTS.model) : $("set-model").value;
+  settings.system = $("set-system").value.trim() || DEFAULTS.system;
+  settings.temp = parseFloat($("set-temp").value);
+  saveSettings(); $("modal-bg").classList.remove("open");
+  renderList(); renderMessages(); toast("Saved");
+};
+
+renderList(); renderMessages();
+</script>
+</body>
+</html>
